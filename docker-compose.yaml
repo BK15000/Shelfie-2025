@@ -1,0 +1,118 @@
+name: shelfie
+services:
+  frontend:
+    build:
+      context: ./src/frontend/
+    ports:
+        - "${PORT:-8081}:8081"
+    environment:
+      - PORT=8081
+
+  authorization:
+    build:
+      context: ./src/auth_backend/
+    ports:
+        - "8080:8080"
+    env_file:
+      - ./src/auth_backend/.env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-auth_db}
+      - HOST=0.0.0.0
+      - PORT=8080
+    volumes:
+      - auth_images:/src/data/images:rw
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - auth_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /src/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - FOWNER
+
+  db:
+    image: postgres:15
+    expose:
+      - "5432"
+    env_file:
+      - ./src/auth_backend/.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-auth_db}
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+    networks:
+      - auth_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-auth_db}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - SETGID
+      - SETUID
+    user: postgres
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "127.0.0.1:5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=True
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin:rw
+    depends_on:
+      - db
+    networks:
+      - auth_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    user: "5050:5050"
+    tmpfs:
+      - /tmp:exec,mode=777
+      - /var/log/pgadmin:mode=777
+      - /var/lib/pgadmin/sessions:mode=777
+      - /var/lib/pgadmin/storage:mode=777
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+volumes:
+  postgres_data:
+    name: auth_backend_postgres_data
+  pgadmin_data:
+    name: auth_backend_pgadmin_data
+  auth_images:
+    name: auth_backend_images
+    external: true
+
+networks:
+  auth_network:
+    name: auth_backend_network
+    driver: bridge
