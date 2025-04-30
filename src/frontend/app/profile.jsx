@@ -15,8 +15,6 @@ export default function Profile() {
   const [gpuEndpoint, setGpuEndpoint] = useState('');
   const [openaiApiKey, setOpenaiApiKey] = useState('');
   const [port, setPort] = useState('');
-  const [ipError, setIpError] = useState('');
-  
   // Initialize user settings when user data is available
   useEffect(() => {
     if (user) {
@@ -76,23 +74,7 @@ export default function Profile() {
     };
   }, [isLoading]);
 
-  // Validate IP address format
-  const isValidIpAddress = (ip) => {
-    // IPv4 regex pattern
-    const ipv4Pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return ipv4Pattern.test(ip);
-  };
-
   const handleUpdateGpuEndpoint = async () => {
-    // Validate IP address format
-    if (!isValidIpAddress(gpuEndpoint)) {
-      Alert.alert(
-        'Invalid IP Address', 
-        'Please enter a valid IP address (e.g., 192.168.1.1)'
-      );
-      return;
-    }
-
     setIsUpdating(true);
     try {
       const success = await updateGpuEndpoint(gpuEndpoint);
@@ -217,28 +199,17 @@ export default function Profile() {
         </Text>
         
         {/* GPU Endpoint */}
-        <Text style={styles.fieldLabel}>GPU Endpoint IP Address</Text>
+        <Text style={styles.fieldLabel}>GPU Endpoint URL</Text>
         <View style={styles.inputContainer}>
           <Ionicons name="server-outline" size={20} color={COLORS.text.secondary} style={styles.inputIcon} />
           <TextInput
-            style={[styles.input, ipError ? { borderColor: COLORS.action.reject, borderWidth: 1 } : {}]}
-            placeholder="GPU Endpoint IP Address (e.g., 192.168.1.1)"
+            style={styles.input}
+            placeholder="GPU Endpoint (e.g., http://192.168.1.1:8080 or https://example.com)"
             placeholderTextColor={COLORS.text.secondary}
             value={gpuEndpoint}
-            onChangeText={(text) => {
-              setGpuEndpoint(text);
-              if (text && !isValidIpAddress(text)) {
-                setIpError('Please enter a valid IP address (e.g., 192.168.1.1)');
-              } else {
-                setIpError('');
-              }
-            }}
+            onChangeText={setGpuEndpoint}
           />
         </View>
-        
-        {ipError ? (
-          <Text style={styles.errorText}>{ipError}</Text>
-        ) : null}
         
         {/* Port (Optional) */}
         <Text style={styles.fieldLabel}>Port (Optional)</Text>

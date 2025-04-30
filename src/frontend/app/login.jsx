@@ -8,19 +8,8 @@ export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [gpuEndpoint, setGpuEndpoint] = useState('127.0.0.1');
-  const [ipError, setIpError] = useState('');
   const [serverStatus, setServerStatus] = useState(null);
   const { login, register, authError, isLoading } = useAuth();
-
-
-
-  // Validate IP address format
-  const isValidIpAddress = (ip) => {
-    // IPv4 regex pattern
-    const ipv4Pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return ipv4Pattern.test(ip);
-  };
 
   const handleSubmit = async () => {
     console.log('Submit button clicked');
@@ -29,19 +18,8 @@ export default function Login() {
         console.log('Attempting login with email:', email);
         await login(email, password);
       } else {
-        // Check if there's an IP error
-        if (ipError) {
-          return; // Don't proceed if there's an IP error
-        }
-        
-        // Double-check IP address format
-        if (!isValidIpAddress(gpuEndpoint)) {
-          setIpError('Please enter a valid IP address (e.g., 192.168.1.1)');
-          return;
-        }
-        
         console.log('Attempting registration with email:', email);
-        await register(email, password, gpuEndpoint);
+        await register(email, password);
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
@@ -94,32 +72,6 @@ export default function Login() {
               />
             </View>
 
-            {!isLogin && (
-              <>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="server-outline" size={20} color={COLORS.text.secondary} style={styles.inputIcon} />
-                  <TextInput
-                    style={[styles.input, ipError ? { borderColor: COLORS.action.reject, borderWidth: 1 } : {}]}
-                    placeholder="GPU Endpoint IP Address (e.g., 192.168.1.1)"
-                    placeholderTextColor={COLORS.text.secondary}
-                    value={gpuEndpoint}
-                    onChangeText={(text) => {
-                      setGpuEndpoint(text);
-                      if (text && !isValidIpAddress(text)) {
-                        setIpError('Please enter a valid IP address (e.g., 192.168.1.1)');
-                      } else {
-                        setIpError('');
-                      }
-                    }}
-                    keyboardType="numeric"
-                  />
-                </View>
-                
-                {ipError ? (
-                  <Text style={styles.errorText}>{ipError}</Text>
-                ) : null}
-              </>
-            )}
 
             <TouchableOpacity
               style={styles.button}
