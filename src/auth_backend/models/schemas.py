@@ -7,9 +7,9 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    gpu_endpoint: str
+    gpu_endpoint: Optional[str] = "http://localhost"
     openai_api_key: Optional[str] = None
-    port: Optional[str] = None
+    port: Optional[str] = '8080'
 
 
 class CollectionItemUpdate(BaseModel):

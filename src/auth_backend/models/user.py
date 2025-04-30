@@ -9,9 +9,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    gpu_endpoint = Column(String, nullable=False)
+    gpu_endpoint = Column(String, nullable=False, server_default="http://localhost")
     openai_api_key = Column(String, nullable=True)
-    port = Column(String, nullable=True)
+    port = Column(String, nullable=False, server_default="8080")
     created_at = Column(DateTime, server_default=func.now())
 
 class CollectionItem(Base):
