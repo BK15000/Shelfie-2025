@@ -16,6 +16,7 @@ services:
   shelfie-sam1-img:
     build:
       context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     deploy:
@@ -33,6 +34,7 @@ services:
 #  shelfie-sam1-img:
 #    build:
 #      context: .
+#      dockerfile: Dockerfile
 #    ports:
 #      - "8080:8080"
 #    deploy:
@@ -76,4 +78,3 @@ services:
 # secrets:
 #   db-password:
 #     file: db/password.txt
-
